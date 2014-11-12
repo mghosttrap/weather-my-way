@@ -1,5 +1,4 @@
 #include <pebble.h>
-#include "network.h"
 #include "datetime_layer.h"
 
 static TextLayer *time_layer;

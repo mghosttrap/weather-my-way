@@ -204,7 +204,7 @@ void weather_layer_clear_temperature()
   text_layer_set_text(wld->primary_temp_layer, "");
 }
 
-void weather_layer_set_temperature(int16_t t, bool is_stale) 
+void weather_layer_set_temperature(int16_t t, bool is_stale)
 {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
@@ -506,7 +506,7 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
     return W_ICON_SNOW_SLEET;
   }
   // Drizzle // Showers
-  else if (c == 9 || c == 11 || c == 40) {
+  else if (c == 9 || c == 11) {
     return W_ICON_DRIZZLE;
   }
   // Rain / Scattered Showers / Thundershowers
@@ -584,9 +584,6 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
       return W_ICON_RAIN_SUN;
   }
   // Weather condition not available
-  else if (c == 3200) {
-      return W_ICON_NOT_AVAILABLE;
-  }
   else {
     return W_ICON_NOT_AVAILABLE;
   }

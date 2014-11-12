@@ -2,3 +2,6 @@
 build/
 .lock-waf_darwin_build
 psd/
+CMakeLists.txt
+src/CMakeLists.txt
+.idea/
