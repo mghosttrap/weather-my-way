@@ -1,8 +1,21 @@
+/** 
+ * JavaScript code for querying current weather conditions for the Weather-My-Way pebble watchface app
+ * @file js/pebble-js-app.js
+ */
+
+/* 
+ * Source code documentation is compatible with JSDoc3
+ * https://github.com/jsdoc3/jsdoc
+ */
+
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
+/**
+ * The global configuration.
+ */
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
   wuApiKey:          null, // register for a free api key!
@@ -17,11 +30,13 @@ var Global = {
     debugEnabled:   false,
     batteryEnabled: true,
     weatherService: SERVICE_YAHOO_WEATHER,
-    weatherScale:   'F'
+    weatherScale:   'F',
+    weatherLatitude: 41.739841,
+    weatherLongitude: -93.620774
   },
 };
 
-// Allow console messages to be turned on / off 
+/** Allow console messages to be turned on / off */
 (function(){
     var original = console.log;
     var logMessage = function (message) {
@@ -33,105 +48,45 @@ var Global = {
     console.warn = logMessage;
 })();
 
-
-// Setup Pebble Event Listeners
-Pebble.addEventListener("ready", function(e) {
-    console.log("Starting ...");
-    var data = { "js_ready": true };
-    Pebble.sendAppMessage(data, ack, function(e){
-      nack(data);
-    });
-    var initialInstall = window.localStorage.getItem('initialInstall');
-    if (initialInstall === null && Global.wuApiKey === null) {
-      window.localStorage.setItem('initialInstall', false);
-      Pebble.showSimpleNotificationOnPebble("API Key Needed", "This watchface requires a free API key from Weather Underground. Please visit Settings in the Pebble App to find out more!");
-    }
-});
-
-Pebble.addEventListener("appmessage", function(data) {
-    console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
-    try {
-      Global.config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
-      Global.config.debugEnabled   = data.payload.debug   === 1;
-      Global.config.batteryEnabled = data.payload.battery === 1;
-      Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
-      Global.wuApiKey              = window.localStorage.getItem('wuApiKey');
-      updateWeather();
-    } catch (ex) {
-      console.warn("Could not retrieve data sent from Pebble: "+ex.message);
-    }
-});
+/**
+ * Post an XmlHttpRequest with data to the the supplied url
+ * @param url Valid url which the data will be posted to
+ * @param data Data which will be posted
+ */
+var post = function(url, data) {
+  try {
+    var req = new XMLHttpRequest();
+    req.open('POST', url, true);
+    req.send(data);
+  } catch(ex) {
+    console.warn('POST failed: ' + ex.message);
+  }
+};
 
 /**
- * This is the reason for the Global.config variable - I couldn't think of a way (short of asking Pebble)
- * for the latest config settings. So I persist them in a rather ugly Global variable. 
+ * Post the supplied debug messages to the external debug url
  */
-Pebble.addEventListener("showConfiguration", function (e) {
-    var options = {
-      's': Global.config.weatherService,
-      'd': Global.config.debugEnabled,
-      'u': Global.config.weatherScale,
-      'b': Global.config.batteryEnabled ? 'on' : 'off',
-      'a': Global.wuApiKey
-    }
-    var url = CONFIGURATION_URL+'?'+serialize(options);
-    console.log('Configuration requested using url: '+url);
-    Pebble.openURL(url);
-});
+var postDebugMessage = function (data) {
+  if (!Global.externalDebug || EXTERNAL_DEBUG_URL === null) {
+    return;
+  }
+  try {
+    post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
+  } catch (ex) {
+    console.warn('Post Debug Message failed:'+ex.message);
+  }  
+};
 
-Pebble.addEventListener("webviewclosed", function(e) {
-    /*
-     * Android Hack - for whatever reason this event is always firing on Android with a message of 'CANCELLED'
-     */
-    if (e.response && e.response !== 'CANCELLED') {
-      try {
-        var settings = JSON.parse(decodeURIComponent(e.response));
 
-        // Android 'cancel' sends a blank object
-        if (Object.keys(settings).length <= 0) {
-          return; 
-        }
-
-        console.log("Settings received: "+JSON.stringify(settings));
-
-        var refreshNeeded = (settings.service  !== Global.config.weatherService ||
-                             settings.scale    !== Global.config.weatherScale   || 
-                             settings.wuApiKey !== Global.wuApiKey);
-
-        Global.config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
-        Global.config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
-        Global.config.debugEnabled   = settings.debug   === 'true';
-        Global.config.batteryEnabled = settings.battery === 'on';
-        Global.wuApiKey              = settings.wuApiKey;
-
-        if (Global.wuApiKey !== null) {
-          window.localStorage.setItem('wuApiKey', Global.wuApiKey);
-        } else {
-          window.localStorage.removeItem('wuApiKey');
-        }
-        
-        var config = {
-          service: Global.config.weatherService,
-          scale:   Global.config.weatherScale,
-          debug:   Global.config.debugEnabled   ? 1 : 0,
-          battery: Global.config.batteryEnabled ? 1 : 0
-        };
-
-        Pebble.sendAppMessage(config, ack, function(ev){
-          nack(config);
-        });
-
-        if (refreshNeeded) {
-          updateWeather();
-        }
-      } catch(ex) {
-        console.warn("Unable to parse response from configuration:"+ex.message);
-      }
-    }
-});
-
-var ack  = function ()  { console.log("Pebble ACK sendAppMessage");}
-var nack = function (data, retry) {
+/**
+ * The pebble acknowledgement that the sent message was received and handled
+ */
+var ack  = function ()  { console.log("Pebble ACK sendAppMessage");};
+/**
+ * The pebble acknowledgement that an error occured in the processing of the message
+ */
+var nack = function (data, retry) 
+{
   retry = typeof retry !== 'undefined' ? retry : 0;
   retry++;
   if (retry >= Global.maxRetry) {
@@ -146,52 +101,69 @@ var nack = function (data, retry) {
           });
     }, Global.retryWait + Math.floor(Math.random() * Global.retryWait));
   }
-}
+};
 
-var updateWeather = function () {
-  if (Global.updateInProgress && 
-      new Date().getTime() < Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout) {
-    console.log("Update already started in the last "+(Global.updateWaitTimeout/60000)+" minutes");
-    return;
+var getJson = function(url, callback) {
+  try {
+    var req = new XMLHttpRequest();
+    req.open('GET', url, true);
+    req.onload = function(e) {
+      if (req.readyState == 4) {
+        if(req.status == 200) {
+          try {
+            //console.log(req.responseText);
+            var response = JSON.parse(req.responseText);
+            callback(null, response);
+          } catch (ex) {
+            callback(ex.message);
+          }
+        } else {
+          callback("Error request status not 200, status: "+req.status);
+        }
+      }
+    };
+    req.send(null);
+  } catch(ex) {
+    callback("Unable to GET JSON: "+ex.message);
   }
-  Global.updateInProgress  = true;
-  Global.lastUpdateAttempt = new Date();
+};
 
-  var locationOptions = { "timeout": 15000, "maximumAge": 60000 };
-  navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
-}
+/**
+ *
+ */
+var fetchWeather = function(options) 
+{
+  //console.log('URL: ' + options.url);
 
-var locationSuccess = function (pos) {
-    var coordinates = pos.coords;
-    console.log("Got coordinates: " + JSON.stringify(coordinates));
-    if (Global.config.weatherService === SERVICE_OPEN_WEATHER) {
-      fetchOpenWeather(coordinates.latitude, coordinates.longitude);
-    } else {
-      fetchYahooWeather(coordinates.latitude, coordinates.longitude);
-    }
-    if (Global.wuApiKey !== null) {
-      fetchWunderWeather(coordinates.latitude, coordinates.longitude);
-    } else {
-      var data = {hourly_enabled: 0};
-      console.log("Hourly disabled, no WU ApiKey");
-      Pebble.sendAppMessage(data, ack, function(ev){
-          nack(data);
+  getJson(options.url, function(err, response) {
+
+    try {
+      if (err) {
+        throw err;
+      }
+
+      var weather = options.parse(response);
+
+      console.log('Weather Data: ' + JSON.stringify(weather));
+
+      Pebble.sendAppMessage(weather, ack, function(e){
+        nack(weather);
       });
+      postDebugMessage(weather);
+    
+    } catch (ex) {
+      console.warn("Could not find weather data in response: " + ex.message);
+      var error = { "error": "HTTP Error" };
+      Pebble.sendAppMessage(error, ack, nack);
+      postDebugMessage(error);
     }
-}
-
-var locationError = function (err) {
-    var message = 'Location error (' + err.code + '): ' + err.message;
-    console.warn(message);
-    Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
-    postDebugMessage({"error": message});
     Global.updateInProgress = false;
-}
+  });
+};
 
 var fetchYahooWeather = function(latitude, longitude) {
 
-  var subselect, neighbor, query, multi
-    , options = {};
+  var subselect, neighbor, query, multi, options = {};
 
   subselect   = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
   neighbor    = 'SELECT * FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
@@ -269,8 +241,8 @@ var fetchWunderWeather = function(latitude, longitude) {
 
   options.parse = function(response) {
         
-      var h1 = response.hourly_forecast[Global.hourlyIndex1]
-        , h2 = response.hourly_forecast[Global.hourlyIndex2];  
+      var h1 = response.hourly_forecast[Global.hourlyIndex1],
+          h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
       return {
         h1_temp: Global.config.weatherScale === 'C' ? parseInt(h1.temp.metric) : parseInt(h1.temp.english),
@@ -286,88 +258,179 @@ var fetchWunderWeather = function(latitude, longitude) {
   fetchWeather(options);
 };
 
-
-var fetchWeather = function(options) {
-
-  //console.log('URL: ' + options.url);
-
-  getJson(options.url, function(err, response) {
-
-    try {
-      if (err) {
-        throw err;
-      }
-
-      var weather = options.parse(response);
-
-      console.log('Weather Data: ' + JSON.stringify(weather));
-
-      Pebble.sendAppMessage(weather, ack, function(e){
-        nack(weather);
-      });
-      postDebugMessage(weather);
-    
-    } catch (ex) {
-      console.warn("Could not find weather data in response: " + ex.message);
-      var error = { "error": "HTTP Error" };
-      Pebble.sendAppMessage(error, ack, nack);
-      postDebugMessage(error);
-    }
-    Global.updateInProgress = false;
-  });
-};
-
-var getJson = function(url, callback) {
-  try {
-    var req = new XMLHttpRequest();
-    req.open('GET', url, true);
-    req.onload = function(e) {
-      if (req.readyState == 4) {
-        if(req.status == 200) {
-          try {
-            //console.log(req.responseText);
-            var response = JSON.parse(req.responseText);
-            callback(null, response);
-          } catch (ex) {
-            callback(ex.message);
-          }
-        } else {
-          callback("Error request status not 200, status: "+req.status);
-        }
-      }
-    };
-    req.send(null);
-  } catch(ex) {
-    callback("Unable to GET JSON: "+ex.message);
-  }
-};
-
-var postDebugMessage = function (data) {
-  if (!Global.externalDebug || EXTERNAL_DEBUG_URL === null) {
-    return;
-  }
-  try {
-    post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
-  } catch (ex) {
-    console.warn('Post Debug Message failed:'+ex.message);
-  }  
-};
-
-var post = function(url, data) {
-  try {
-    var req = new XMLHttpRequest();
-    req.open('POST', url, true);
-    req.send(data);
-  } catch(ex) {
-    console.warn('POST failed: ' + ex.message);
-  }
-};
-
+/**
+ * Given an object, serialize it into a key=value string format
+ */
 var serialize = function(obj) {
   var str = [];
   for(var p in obj)
+  {
     if (obj.hasOwnProperty(p)) {
       str.push(encodeURIComponent(p) + "=" + encodeURIComponent(obj[p]));
     }
+  }
   return str.join("&");
-}
+};
+
+/**
+ * Fetches weather data from the selected weather source for the specified location
+ */
+var queryWeatherConditions = function(latitude, longitude)
+{
+    if (Global.config.weatherService === SERVICE_OPEN_WEATHER) {
+      fetchOpenWeather(latitude, longitude);
+    } else {
+      fetchYahooWeather(latitude, longitude);
+    }
+    if (Global.wuApiKey !== null) {
+      fetchWunderWeather(latitude, longitude);
+    } else {
+      var data = {hourly_enabled: 0};
+      console.log("Hourly disabled, no WU ApiKey");
+      Pebble.sendAppMessage(data, ack, function(ev){
+          nack(data);
+      });
+    }
+};
+
+/**
+ * Called when the location is successfully aquired
+ * @param pos position data
+ */
+var locationSuccess = function (pos) {
+    var coordinates = pos.coords;
+    console.log("Got coordinates: " + JSON.stringify(coordinates));
+    queryWeatherConditions( pos.latitude, pos.longitude );
+};
+
+/** 
+ * Called when the location is not successfully aquired
+ * @param err Error information
+ */
+var locationError = function (err) {
+    var message = 'Location error (' + err.code + '): ' + err.message;
+    console.warn(message);
+    Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
+    postDebugMessage({"error": message});
+    Global.updateInProgress = false;
+};
+
+/** 
+ * Called whenever the weather data is out of date, fetches the current
+ * location we want weather data for 
+ */
+var updateWeather = function () 
+{
+  var nextUpdateTime = Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout;
+  if (Global.updateInProgress && new Date().getTime() < nextUpdateTime) 
+  {
+    console.log("Update already started in the last "+(Global.updateWaitTimeout/60000)+" minutes");
+    return;
+  }
+  Global.updateInProgress  = true;
+  Global.lastUpdateAttempt = new Date();
+
+  var locationOptions = { "timeout": 15000, "maximumAge": 60000 };
+  navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
+};
+
+/* - - - - - - - - - - - - - - - - - - - - - - - - */
+
+/** Setup Pebble Event Listeners */
+Pebble.addEventListener("ready", function(e) {
+    console.log("Starting ...");
+    var data = { "js_ready": true };
+    Pebble.sendAppMessage(data, ack, function(e){
+      nack(data);
+    });
+    var initialInstall = localStorage.getItem('initialInstall');
+    if (initialInstall === null && Global.wuApiKey === null) {
+      localStorage.setItem('initialInstall', false);
+      Pebble.showSimpleNotificationOnPebble("API Key Needed", "This watchface requires a free API key from Weather Underground. Please visit Settings in the Pebble App to find out more!");
+    }
+});
+
+/**
+ * Handle the appmessage event. Triggers checks to see if updated weather should be pulled
+ */
+Pebble.addEventListener("appmessage", function(data) {
+    console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
+    try {
+      Global.config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+      Global.config.debugEnabled   = data.payload.debug   === 1;
+      Global.config.batteryEnabled = data.payload.battery === 1;
+      Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
+      Global.wuApiKey              = localStorage.getItem('wuApiKey');
+      updateWeather();
+    } catch (ex) {
+      console.warn("Could not retrieve data sent from Pebble: "+ex.message);
+    }
+});
+
+/**
+ * This is the reason for the Global.config variable - I couldn't think of a way (short of asking Pebble)
+ * for the latest config settings. So I persist them in a rather ugly Global variable. 
+ */
+Pebble.addEventListener("showConfiguration", function (e) {
+    var options = {
+      's': Global.config.weatherService,
+      'd': Global.config.debugEnabled,
+      'u': Global.config.weatherScale,
+      'b': Global.config.batteryEnabled ? 'on' : 'off',
+      'a': Global.wuApiKey
+    };
+    var url = CONFIGURATION_URL+'?'+serialize(options);
+    console.log('Configuration requested using url: '+url);
+    Pebble.openURL(url);
+});
+
+Pebble.addEventListener("webviewclosed", function(e) {
+    /*
+     * Android Hack - for whatever reason this event is always firing on Android with a message of 'CANCELLED'
+     */
+    if (e.response && e.response !== 'CANCELLED') {
+      try {
+        var settings = JSON.parse(decodeURIComponent(e.response));
+
+        // Android 'cancel' sends a blank object
+        if (Object.keys(settings).length <= 0) {
+          return; 
+        }
+
+        console.log("Settings received: "+JSON.stringify(settings));
+
+        var refreshNeeded = (settings.service  !== Global.config.weatherService ||
+                             settings.scale    !== Global.config.weatherScale   || 
+                             settings.wuApiKey !== Global.wuApiKey);
+
+        Global.config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+        Global.config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
+        Global.config.debugEnabled   = settings.debug   === 'true';
+        Global.config.batteryEnabled = settings.battery === 'on';
+        Global.wuApiKey              = settings.wuApiKey;
+
+        if (Global.wuApiKey !== null) {
+          localStorage.setItem('wuApiKey', Global.wuApiKey);
+        } else {
+          localStorage.removeItem('wuApiKey');
+        }
+        
+        var config = {
+          service: Global.config.weatherService,
+          scale:   Global.config.weatherScale,
+          debug:   Global.config.debugEnabled   ? 1 : 0,
+          battery: Global.config.batteryEnabled ? 1 : 0
+        };
+
+        Pebble.sendAppMessage(config, ack, function(ev){
+          nack(config);
+        });
+
+        if (refreshNeeded) {
+          updateWeather();
+        }
+      } catch(ex) {
+        console.warn("Unable to parse response from configuration:"+ex.message);
+      }
+    }
+});
