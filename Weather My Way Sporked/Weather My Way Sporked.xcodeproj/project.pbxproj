@@ -1,0 +1,291 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		291753561A58BCA300557E7B /* appinfo.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = appinfo.json; path = ../appinfo.json; sourceTree = "<group>"; };
+		291753571A58BCA300557E7B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		2917535A1A58BCA300557E7B /* futura.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = futura.ttf; sourceTree = "<group>"; };
+		2917535B1A58BCA300557E7B /* futura_condensed_bold-webfont.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "futura_condensed_bold-webfont.ttf"; sourceTree = "<group>"; };
+		2917535D1A58BCA300557E7B /* 30x30.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 30x30.png; sourceTree = "<group>"; };
+		2917535E1A58BCA300557E7B /* 45x45.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = 45x45.png; sourceTree = "<group>"; };
+		291753601A58BCA300557E7B /* pebble-banner.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pebble-banner.png"; sourceTree = "<group>"; };
+		291753611A58BCA300557E7B /* pebble-screenshot1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pebble-screenshot1.png"; sourceTree = "<group>"; };
+		291753621A58BCA300557E7B /* pebble-screenshot2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pebble-screenshot2.png"; sourceTree = "<group>"; };
+		291753631A58BCA300557E7B /* pebble-screenshot3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pebble-screenshot3.png"; sourceTree = "<group>"; };
+		291753641A58BCA300557E7B /* weather-my-way-config.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "weather-my-way-config.png"; sourceTree = "<group>"; };
+		291753661A58BCA300557E7B /* battery_layer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = battery_layer.c; sourceTree = "<group>"; };
+		291753671A58BCA300557E7B /* battery_layer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = battery_layer.h; sourceTree = "<group>"; };
+		291753681A58BCA300557E7B /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		291753691A58BCA300557E7B /* datetime_layer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = datetime_layer.c; sourceTree = "<group>"; };
+		2917536A1A58BCA300557E7B /* datetime_layer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = datetime_layer.h; sourceTree = "<group>"; };
+		2917536B1A58BCA300557E7B /* debug_layer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = debug_layer.c; sourceTree = "<group>"; };
+		2917536C1A58BCA300557E7B /* debug_layer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = debug_layer.h; sourceTree = "<group>"; };
+		2917536E1A58BCA300557E7B /* pebble-js-app.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "pebble-js-app.js"; sourceTree = "<group>"; };
+		2917536F1A58BCA300557E7B /* main.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		291753701A58BCA300557E7B /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
+		291753711A58BCA300557E7B /* network.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = network.c; sourceTree = "<group>"; };
+		291753721A58BCA300557E7B /* network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = network.h; sourceTree = "<group>"; };
+		291753731A58BCA300557E7B /* persist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = persist.c; sourceTree = "<group>"; };
+		291753741A58BCA300557E7B /* persist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = persist.h; sourceTree = "<group>"; };
+		291753751A58BCA300557E7B /* weather_layer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = weather_layer.c; sourceTree = "<group>"; };
+		291753761A58BCA300557E7B /* weather_layer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = weather_layer.h; sourceTree = "<group>"; };
+		291753771A58BCA300557E7B /* wscript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = wscript; path = ../wscript; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2917534B1A58BC6C00557E7B = {
+			isa = PBXGroup;
+			children = (
+				291753561A58BCA300557E7B /* appinfo.json */,
+				291753571A58BCA300557E7B /* README.md */,
+				291753581A58BCA300557E7B /* resources */,
+				2917535F1A58BCA300557E7B /* screenshots */,
+				291753651A58BCA300557E7B /* src */,
+				291753771A58BCA300557E7B /* wscript */,
+			);
+			sourceTree = "<group>";
+		};
+		291753581A58BCA300557E7B /* resources */ = {
+			isa = PBXGroup;
+			children = (
+				291753591A58BCA300557E7B /* fonts */,
+				2917535C1A58BCA300557E7B /* images */,
+			);
+			name = resources;
+			path = ../resources;
+			sourceTree = "<group>";
+		};
+		291753591A58BCA300557E7B /* fonts */ = {
+			isa = PBXGroup;
+			children = (
+				2917535A1A58BCA300557E7B /* futura.ttf */,
+				2917535B1A58BCA300557E7B /* futura_condensed_bold-webfont.ttf */,
+			);
+			path = fonts;
+			sourceTree = "<group>";
+		};
+		2917535C1A58BCA300557E7B /* images */ = {
+			isa = PBXGroup;
+			children = (
+				2917535D1A58BCA300557E7B /* 30x30.png */,
+				2917535E1A58BCA300557E7B /* 45x45.png */,
+			);
+			path = images;
+			sourceTree = "<group>";
+		};
+		2917535F1A58BCA300557E7B /* screenshots */ = {
+			isa = PBXGroup;
+			children = (
+				291753601A58BCA300557E7B /* pebble-banner.png */,
+				291753611A58BCA300557E7B /* pebble-screenshot1.png */,
+				291753621A58BCA300557E7B /* pebble-screenshot2.png */,
+				291753631A58BCA300557E7B /* pebble-screenshot3.png */,
+				291753641A58BCA300557E7B /* weather-my-way-config.png */,
+			);
+			name = screenshots;
+			path = ../screenshots;
+			sourceTree = "<group>";
+		};
+		291753651A58BCA300557E7B /* src */ = {
+			isa = PBXGroup;
+			children = (
+				291753661A58BCA300557E7B /* battery_layer.c */,
+				291753671A58BCA300557E7B /* battery_layer.h */,
+				291753681A58BCA300557E7B /* config.h */,
+				291753691A58BCA300557E7B /* datetime_layer.c */,
+				2917536A1A58BCA300557E7B /* datetime_layer.h */,
+				2917536B1A58BCA300557E7B /* debug_layer.c */,
+				2917536C1A58BCA300557E7B /* debug_layer.h */,
+				2917536D1A58BCA300557E7B /* js */,
+				2917536F1A58BCA300557E7B /* main.c */,
+				291753701A58BCA300557E7B /* main.h */,
+				291753711A58BCA300557E7B /* network.c */,
+				291753721A58BCA300557E7B /* network.h */,
+				291753731A58BCA300557E7B /* persist.c */,
+				291753741A58BCA300557E7B /* persist.h */,
+				291753751A58BCA300557E7B /* weather_layer.c */,
+				291753761A58BCA300557E7B /* weather_layer.h */,
+			);
+			name = src;
+			path = ../src;
+			sourceTree = "<group>";
+		};
+		2917536D1A58BCA300557E7B /* js */ = {
+			isa = PBXGroup;
+			children = (
+				2917536E1A58BCA300557E7B /* pebble-js-app.js */,
+			);
+			path = js;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		291753501A58BC6C00557E7B /* Weather My Way Sporked */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 291753531A58BC6C00557E7B /* Build configuration list for PBXLegacyTarget "Weather My Way Sporked" */;
+			buildPhases = (
+			);
+			buildToolPath = "/Users/geistkempers/pebble-dev/PebbleSDK-current/bin/pebble";
+			dependencies = (
+			);
+			name = "Weather My Way Sporked";
+			passBuildSettingsInEnvironment = 1;
+			productName = "Weather My Way Sporked";
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		2917534C1A58BC6C00557E7B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0610;
+				ORGANIZATIONNAME = "Mitch Geistkemper";
+				TargetAttributes = {
+					291753501A58BC6C00557E7B = {
+						CreatedOnToolsVersion = 6.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 2917534F1A58BC6C00557E7B /* Build configuration list for PBXProject "Weather My Way Sporked" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 2917534B1A58BC6C00557E7B;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				291753501A58BC6C00557E7B /* Weather My Way Sporked */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		291753511A58BC6C00557E7B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		291753521A58BC6C00557E7B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		291753541A58BC6C00557E7B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DEBUGGING_SYMBOLS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		291753551A58BC6C00557E7B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2917534F1A58BC6C00557E7B /* Build configuration list for PBXProject "Weather My Way Sporked" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				291753511A58BC6C00557E7B /* Debug */,
+				291753521A58BC6C00557E7B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		291753531A58BC6C00557E7B /* Build configuration list for PBXLegacyTarget "Weather My Way Sporked" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				291753541A58BC6C00557E7B /* Debug */,
+				291753551A58BC6C00557E7B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 2917534C1A58BC6C00557E7B /* Project object */;
+}

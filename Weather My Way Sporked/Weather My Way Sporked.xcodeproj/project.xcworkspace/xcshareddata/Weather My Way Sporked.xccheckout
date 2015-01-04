@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>1AAFB69B-7DAF-420F-A0F6-378860F5E05F</string>
+	<key>IDESourceControlProjectName</key>
+	<string>Weather My Way Sporked</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>5650DB6F1F38024D603CFE90DEADB4FC8B58E1E3</key>
+		<string>https://github.com/mghosttrap/weather-my-way.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Weather My Way Sporked/Weather My Way Sporked.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>5650DB6F1F38024D603CFE90DEADB4FC8B58E1E3</key>
+		<string>../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/mghosttrap/weather-my-way.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>5650DB6F1F38024D603CFE90DEADB4FC8B58E1E3</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>5650DB6F1F38024D603CFE90DEADB4FC8B58E1E3</string>
+			<key>IDESourceControlWCCName</key>
+			<string>sporked_weather-my-way</string>
+		</dict>
+	</array>
+</dict>
+</plist>
