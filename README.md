@@ -16,9 +16,11 @@ Give it a shot and let me know what you think: [download pbw here](https://githu
 
 The hourly data for this app comes from the [Weather Underground API](http://www.wunderground.com/weather/api/). Unfortunately, their API is not free. However, Weather Underground does provide a free developer API key (500 hits / day) which more than suffices for this app. Don't share your API key, as once the quota has been reached the key will stop working. 
 
+Might also need a [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/index) key to convert an address to the lat/long of a home location. The code which might need this is currently unimplemented.
+
 ## Configuration 
 
-[Try it yourself here](http://jaredbiehler.github.io/weather-my-way/config/)
+(When it is release worthy) Try it yourself here.
 
  Query string variables: 
 ```
