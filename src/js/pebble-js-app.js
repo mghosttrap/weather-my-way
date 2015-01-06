@@ -17,23 +17,24 @@ var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config
  * The global configuration.
  */
 var Global = {
-  externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          null, // register for a free api key!
-  hourlyIndex1:      2, // 3 Hours from now 
-  hourlyIndex2:      8, // 9 hours from now
-  updateInProgress:  false,
-  updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
-  lastUpdateAttempt: new Date(),
-  maxRetry:          3,
-  retryWait:         500, // ms
-  config: {
-    debugEnabled:   false,
-    batteryEnabled: true,
-    weatherService: SERVICE_YAHOO_WEATHER,
-    weatherScale:   'F',
-    weatherLatitude: 41.739841,
-    weatherLongitude: -93.620774
-  },
+    externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
+    wuApiKey:          null, // register for a free api key!
+    hourlyIndex1:      2, // 3 Hours from now 
+    hourlyIndex2:      8, // 9 hours from now
+    updateInProgress:  false,
+    updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
+    lastUpdateAttempt: new Date(),
+    maxRetry:          3,
+    retryWait:         500, // ms
+    config: {
+        debugEnabled:   false,
+        batteryEnabled: true,
+        weatherService: SERVICE_YAHOO_WEATHER,
+        weatherScale:   'F',
+        weatherLatitude: 41.739841,
+        weatherLongitude: -93.620774
+    },
+    locationWatchingId:    0
 };
 
 /** Allow console messages to be turned on / off */
@@ -94,7 +95,7 @@ var ack  = function ()
 };
 
 /**
- * The pebble acknowledgement that an error occured in the processing of the message
+ * The pebble did not acknowledget the message was received
  */
 var nack = function (data, retry)
 {
@@ -343,7 +344,8 @@ var queryWeatherConditions = function(latitude, longitude)
  *
  * @param pos position data
  */
-var locationSuccess = function (pos) {
+var locationSuccess = function (pos)
+{
     var coordinates = pos.coords;
     console.log("Got coordinates: " + JSON.stringify(coordinates));
     queryWeatherConditions( pos.latitude, pos.longitude );
@@ -354,12 +356,36 @@ var locationSuccess = function (pos) {
  *
  * @param err Error information
  */
-var locationError = function (err) {
+var locationError = function (err)
+{
     var message = 'Location error (' + err.code + '): ' + err.message;
     console.warn(message);
-    Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
-    postDebugMessage({"error": message});
-    Global.updateInProgress = false;
+    switch (err.code )
+    {
+        case err.PERMISSION_DENIED:
+        {
+            // The user has specifically denied access to the current accurate position
+            // If we have a home location, use it, else fall through
+            if ( Global.config.weatherLatitude != 0 && Global.config.weatherLongitude != 0 )
+            {
+                console.log("Using home location for weather forcast query");
+                queryWeatherConditions( Global.config.weatherLatitude,
+                                       Global.config.weatherLongitude );
+                break;
+            }
+            // stop watching the location
+            navigator.geolocation.clearWatch( Global.locationWatchingId );
+            // fall through
+        }
+        case err.POSITION_UNAVAILABLE:
+        case err.TIMEOUT:
+        case default:
+        {
+            Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
+            postDebugMessage({"error": message});
+            Global.updateInProgress = false;
+        }
+    }
 };
 
 /** 
@@ -377,7 +403,11 @@ var updateWeather = function ()
     Global.updateInProgress  = true;
     Global.lastUpdateAttempt = new Date();
     
-    var locationOptions = { "enableHighAccuracy": false, "timeout": 15000, "maximumAge": 60000 };
+    var locationOptions = {
+        "enableHighAccuracy": false,
+        "timeout": 15000,
+        "maximumAge": 60000
+    };
     navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
 };
 
@@ -399,7 +429,15 @@ var OnPebbleReady = function(e)
         localStorage.setItem('initialInstall', false);
         Pebble.showSimpleNotificationOnPebble("API Key Needed", "This watchface requires a free API key from Weather Underground. Please visit Settings in the Pebble App to find out more!");
     }
-};
+    
+    var locationOptions = {
+        "enableHighAccuracy": false,
+        "timeout": 15000,
+        "maximumAge": 60000
+    };
+    Global.locationWatchingId = navigator.geolocation.watchPosition(locationSuccess,
+        locationError, locationOptions);
+}};
 
 Pebble.addEventListener("ready", OnPebbleReady);
 
@@ -409,14 +447,19 @@ Pebble.addEventListener("ready", OnPebbleReady);
 var OnAppMessage = function(data)
 {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
-    try {
-        Global.config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+    try
+    {
+        Global.config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ?
+            SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
         Global.config.debugEnabled   = data.payload.debug   === 1;
         Global.config.batteryEnabled = data.payload.battery === 1;
         Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
         Global.wuApiKey              = localStorage.getItem('wuApiKey');
+        
         updateWeather();
-    } catch (ex) {
+    }
+    catch (ex)
+    {
         console.warn("Could not retrieve data sent from Pebble: "+ex.message);
     }
 };
@@ -427,7 +470,8 @@ Pebble.addEventListener("appmessage", OnAppMessage);
  * This is the reason for the Global.config variable - I couldn't think of a way (short of asking Pebble)
  * for the latest config settings. So I persist them in a rather ugly Global variable. 
  */
-var OnShowConfiguration = function (e) {
+var OnShowConfiguration = function (e)
+{
     var options = {
         's': Global.config.weatherService,
         'd': Global.config.debugEnabled,
@@ -445,7 +489,8 @@ Pebble.addEventListener("showConfiguration", OnShowConfiguration);
 /**
  * Handle when the Webview containing the settings page has been closed
  */
-var OnWebviewClosed = function(e) {
+var OnWebviewClosed = function(e)
+{
     /*
      * Android Hack - for whatever reason this event is always firing on Android with a message of 'CANCELLED'
      */
