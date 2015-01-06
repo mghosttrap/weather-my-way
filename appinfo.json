@@ -28,7 +28,7 @@
         "configurable"
     ],
     "companyName": "Mitch Geistkemper",
-    "longName": "Weather My Way",
+    "longName": "Weather Watchface",
     "projectType": "native",
     "resources": {
         "media": [
@@ -70,10 +70,10 @@
             }
         ]
     },
-    "shortName": "Weather My Way",
+    "shortName": "Weather Watchface",
     "uuid": "BFE65BC4-B1EA-4CF0-B861-DB1B4E082BE0",
     "versionCode": 7,
-    "versionLabel": "1.2",
+    "versionLabel": "0.1",
     "watchapp": {
         "watchface": true
     }
