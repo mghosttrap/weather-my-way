@@ -86,7 +86,6 @@ static void handle_bt_event( bool connected )
         // alert the user by vibrating
         vibes_double_pulse();
         // invalidate the data and indicate an error
-        weather_data->stale = true;
         weather_data->error = WEATHER_E_PHONE;
     }
 }
