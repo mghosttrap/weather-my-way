@@ -38,6 +38,7 @@ a=[apikey]      // Weather Underground API Key
   - Adding ability to specify a USPS zip code or lat/long (a home location)
   - Changes to the location monitoring to alleviate the need to constantly poke the JavaScript engine
  - Add the ability to use the current location to monitor active alerts from the National Weather Service (US)
+ - Added monitoring of bluetooth events
 
 ## Progress
  - Hourly weather! 
