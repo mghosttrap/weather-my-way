@@ -366,7 +366,7 @@ var locationError = function (err)
         {
             // The user has specifically denied access to the current accurate position
             // If we have a home location, use it, else fall through
-            if ( Global.config.weatherLatitude != 0 && Global.config.weatherLongitude != 0 )
+            if ( Global.config.weatherLatitude !== 0.0 && Global.config.weatherLongitude !== 0.0 )
             {
                 console.log("Using home location for weather forcast query");
                 queryWeatherConditions( Global.config.weatherLatitude,
@@ -379,7 +379,7 @@ var locationError = function (err)
         }
         case err.POSITION_UNAVAILABLE:
         case err.TIMEOUT:
-        case default:
+        default:
         {
             Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
             postDebugMessage({"error": message});
@@ -437,7 +437,7 @@ var OnPebbleReady = function(e)
     };
     Global.locationWatchingId = navigator.geolocation.watchPosition(locationSuccess,
         locationError, locationOptions);
-}};
+};
 
 Pebble.addEventListener("ready", OnPebbleReady);
 
