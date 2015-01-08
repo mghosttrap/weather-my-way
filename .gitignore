@@ -5,3 +5,5 @@ psd/
 CMakeLists.txt
 src/CMakeLists.txt
 .idea/
+*.xcuserstate
+*.xcbkptlist
