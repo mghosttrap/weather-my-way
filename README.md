@@ -34,11 +34,12 @@ a=[apikey]      // Weather Underground API Key
 ![config screen](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/weather-my-way-config.png)
 
 ## Work in Progress
+ - Fast restart - Save last weather report (location, time, values) so it doesn't need to query if the watch face is switched out and back.
  - Changes to reduce battery utilization on the connected device
   - Adding ability to specify a USPS zip code or lat/long (a home location)
-  - Changes to the location monitoring to alleviate the need to constantly poke the JavaScript engine
+  - Changes to the location monitoring to alleviate the need to constantly poke the JavaScript engine - Although location updates appear faster than previous implementation
  - Add the ability to use the current location to monitor active alerts from the National Weather Service (US)
- - Added monitoring of bluetooth events
+ - Added monitoring of bluetooth events, notification on disconnect
 
 ## Progress
  - Hourly weather! 
