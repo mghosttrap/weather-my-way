@@ -355,13 +355,13 @@ var wunderConditionsToEnum = function( str_conditions )
         offset = 100;
         base_conditions = str_conditions.substring( 6 );
     }
-    else if str_conditions.indexOf( 'Heavy' != -1 )
+    else if ( str_conditions.indexOf( 'Heavy' != -1 ) )
     {
         offset = 200;
         base_conditions = str_conditions.substring( 6 );
     }
     // walk the known values array until we find a match
-    for ( i = 0; i < 52; ++i )
+    for ( var i = 0; i < 52; ++i )
     {
         if ( str_values[i] == base_conditions )
         {
@@ -385,7 +385,7 @@ var fetchWunderWeather = function( latitude, longitude )
         var metric = Global.config.weatherScale === 'C';
         // TODO: Create a map function using the possible conditions listed here:
         //     http://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
-        var contdition = wunderConditionsToEnum( response.current_observation.weather );
+        var condition = wunderConditionsToEnum( response.current_observation.weather );
         var temperature = (metric) ?
             response.current_observation.temp_c :
             response.current_observation.temp_f;
@@ -402,7 +402,7 @@ var fetchWunderWeather = function( latitude, longitude )
             temperature: temperature,
             sunrise:     sunrise,
             sunset:      sunset,
-            locale:      response.name,
+            locale:      locale,
             pubdate:     pubdate.getHours() + ':' + ('0' + pubdate.getMinutes()).slice(-2),
             tzoffset:    new Date().getTimezoneOffset() * 60
         };
@@ -504,6 +504,38 @@ var queryWeatherConditions = function(latitude, longitude)
 };
 
 /**
+ * Called whenever the weather data is out of date, fetches the current
+ * location we want weather data for 
+ */
+var updateWeather = function ()
+{
+    var nextUpdateTime = Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout;
+    if (Global.updateInProgress && new Date().getTime() < nextUpdateTime)
+    {
+        console.log("Update already started in the last " +
+                    (Global.updateWaitTimeout/60000) + " minutes");
+        return false;
+    }
+    Global.updateInProgress  = true;
+    Global.lastUpdateAttempt = new Date();
+    
+    if ( Global.locationWatchingId === 0 )
+    {
+        //var locationOptions = {
+        //    "enableHighAccuracy": false,
+        //    "timeout": 15000,
+        //    "maximumAge": 60000
+        //};
+        //navigator.geolocation.getCurrentPosition( locationSuccess, locationError,
+        //                                          locationOptions );
+        
+        queryWeatherConditions( Global.config.homeWeatherLat,
+                                Global.config.homeWeatherLong );
+    }
+    return true;
+};
+
+/**
  * Called when the location is successfully aquired
  *
  * @param pos position data
@@ -549,38 +581,6 @@ var locationError = function (err)
         Global.updateInProgress = false;
 
     }
-};
-
-/**
- * Called whenever the weather data is out of date, fetches the current
- * location we want weather data for 
- */
-var updateWeather = function ()
-{
-    var nextUpdateTime = Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout;
-    if (Global.updateInProgress && new Date().getTime() < nextUpdateTime)
-    {
-        console.log("Update already started in the last " +
-                    (Global.updateWaitTimeout/60000) + " minutes");
-        return false;
-    }
-    Global.updateInProgress  = true;
-    Global.lastUpdateAttempt = new Date();
-    
-    if ( Global.locationWatchingId == 0 )
-    {
-        //var locationOptions = {
-        //    "enableHighAccuracy": false,
-        //    "timeout": 15000,
-        //    "maximumAge": 60000
-        //};
-        //navigator.geolocation.getCurrentPosition( locationSuccess, locationError,
-        //                                          locationOptions );
-        
-        queryWeatherConditions( Global.config.homeWeatherLat,
-                                Global.config.homeWeatherLong );
-    }
-    return true;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
