@@ -12,6 +12,7 @@ var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
+var EARTH_RADIUS          = 63781370; // Meters
 
 /**
  * The global configuration.
@@ -22,17 +23,19 @@ var Global = {
     hourlyIndex1:      2, // 3 Hours from now 
     hourlyIndex2:      8, // 9 hours from now
     updateInProgress:  false,
-    updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
+    updateWaitTimeout: 5 * 60 * 1000, // 5 minutes in ms
     lastUpdateAttempt: new Date(),
+    weatherDataLat:    0,
+    weatherDataLong:   0,
     maxRetry:          3,
-    retryWait:         500, // ms
+    retryWait:         1000, // ms
     config: {
         debugEnabled:   false,
         batteryEnabled: true,
         weatherService: SERVICE_YAHOO_WEATHER,
         weatherScale:   'F',
-        weatherLatitude: 41.739841,
-        weatherLongitude: -93.620774
+        homeWeatherLat: 41.739841,
+        homeWeatherLong: -93.620774
     },
     locationWatchingId:    0
 };
@@ -264,27 +267,175 @@ var fetchOpenWeather = function(latitude, longitude)
 };
 
 /**
+ * Fetch alert data from Weather Underground
+ */
+var fetchWunderAlerts = function( latitude, longitude )
+{
+    var options = {};
+    options.url = 'http://api.wunderground.com/api/' + Global.wuApiKey +
+        '/alerts/q/' + latitude + ',' + longitude + '.json';
+    // define the parse function for handling the response
+    options.parse = function( response )
+    {
+        
+    };
+    //fetchWeather( options );
+};
+
+/**
+ * Converts a string enumeration value provided by WeatherUnderground for current 
+ * weather conditions into an integer value
+ */
+var wunderConditionsToEnum = function( str_conditions )
+{
+    /* Possible string values: */
+    var str_values = [
+                  'Drizzle',
+                  'Rain',
+                  'Snow',
+                  'Snow Grains',
+                  'Ice Crystals',
+                  'Ice Pellets',
+                  'Hail',
+                  'Mist',
+                  'Fog',
+                  'Fog Patches',
+                  'Smoke',
+                  'Volcanic Ash',
+                  'Widespread Dust',
+                  'Sand',
+                  'Haze',
+                  'Spray',
+                  'Dust Whirls',
+                  'Sandstorm',
+                  'Low Drifting Snow',
+                  'Low Drifting Widespread Dust',
+                  'Low Drifting Sand',
+                  'Blowing Snow',
+                  'Blowing Widespread Dust',
+                  'Blowing Sand',
+                  'Rain Mist',
+                  'Rain Showers',
+                  'Snow Showers',
+                  'Snow Blowing Snow Mist',
+                  'Ice Pellet Showers',
+                  'Hail Showers',
+                  'Small Hail Showers',
+                  'Thunderstorm',
+                  'Thunderstorms and Rain',
+                  'Thunderstorms and Snow',
+                  'Thunderstorms and Ice Pellets',
+                  'Thunderstorms with Hail',
+                  'Thunderstorms with Small Hail',
+                  'Freezing Drizzle',
+                  'Freezing Rain',
+                  'Freezing Fog',
+                  'Patches of Fog',
+                  'Shallow Fog',
+                  'Partial Fog',
+                  'Overcast',
+                  'Clear',
+                  'Partly Cloudy',
+                  'Mostly Cloudy',
+                  'Scattered Clouds',
+                  'Small Hail',
+                  'Squalls',
+                  'Funnel Cloud',
+                  'Unknown Precipitation',
+                  'Unknown'
+                  ];
+     /*
+      52 naked values * 3 to accomodate Light/Heavy/'' prefixes on most of them
+      */
+    // if the string begins with Light offset by 100, Heavy offset by 200
+    var offset = 0;
+    var base_conditions = str_conditions;
+    if ( str_conditions.indexOf( 'Light' ) != -1 )
+    {
+        offset = 100;
+        base_conditions = str_conditions.substring( 6 );
+    }
+    else if str_conditions.indexOf( 'Heavy' != -1 )
+    {
+        offset = 200;
+        base_conditions = str_conditions.substring( 6 );
+    }
+    // walk the known values array until we find a match
+    for ( i = 0; i < 52; ++i )
+    {
+        if ( str_values[i] == base_conditions )
+        {
+            return offset + i;
+        }
+    }
+    return -1;
+};
+
+/**
+ * Fetch weather data for the current conditions from Weather Underground
+ */
+var fetchWunderWeather = function( latitude, longitude )
+{
+    var options = {};
+    options.url = 'http://api.wunderground.com/api/' + Global.wuApiKey +
+        '/conditions/q/' + latitude + ',' + longitude + '.json';
+    // define the parse function for handling the response
+    options.parse = function(response)
+    {
+        var metric = Global.config.weatherScale === 'C';
+        // TODO: Create a map function using the possible conditions listed here:
+        //     http://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
+        var contdition = wunderConditionsToEnum( response.current_observation.weather );
+        var temperature = (metric) ?
+            response.current_observation.temp_c :
+            response.current_observation.temp_f;
+        var sunrise = 0;
+        var sunset = 0;
+        var locale = response.display_location.full;
+        var pubdate = new Date( Date.parse(
+            response.current_observation.observation_time_rfc822 ) );
+        // needed?
+        //var tzoffset = parseInt( response.current_observation.local_tz_offset );
+        
+        return {
+            condition:   condition,
+            temperature: temperature,
+            sunrise:     sunrise,
+            sunset:      sunset,
+            locale:      response.name,
+            pubdate:     pubdate.getHours() + ':' + ('0' + pubdate.getMinutes()).slice(-2),
+            tzoffset:    new Date().getTimezoneOffset() * 60
+        };
+    };
+    //fetchWeather( options );
+};
+
+/**
  * Fetch weather data from Weather Underground
  *
  * @param latitude  Latitude portion of the GPS location we want data on
  * @param longitude Longitude portion of the GPS location we want data on
  */
-var fetchWunderWeather = function(latitude, longitude)
+var fetchHourlyWunderWeather = function(latitude, longitude)
 {
     var options = {};
-    options.url = 'http://api.wunderground.com/api/'+Global.wuApiKey+'/hourly/q/'+latitude+','+longitude+'.json';
+    options.url = 'http://api.wunderground.com/api/' + Global.wuApiKey +
+        '/hourly/q/' + latitude + ',' + longitude + '.json';
     
-    options.parse = function(response) {
+    options.parse = function(response)
+    {
         
         var h1 = response.hourly_forecast[Global.hourlyIndex1],
         h2 = response.hourly_forecast[Global.hourlyIndex2];
         
         return {
-            h1_temp: Global.config.weatherScale === 'C' ? parseInt(h1.temp.metric) : parseInt(h1.temp.english),
+            h1_temp: Global.config.weatherScale === 'C' ? parseInt(h1.temp.metric) :
+                parseInt(h1.temp.english),
             h1_cond: parseInt(h1.fctcode),
             h1_time: parseInt(h1.FCTTIME.epoch),
             h1_pop:  parseInt(h1.pop),
-            h2_temp: Global.config.weatherScale === 'C' ? parseInt(h2.temp.metric) : parseInt(h2.temp.english),
+            h2_temp: Global.config.weatherScale === 'C' ? parseInt(h2.temp.metric) :
+                parseInt(h2.temp.english),
             h2_cond: parseInt(h2.fctcode),
             h2_time: parseInt(h2.FCTTIME.epoch),
             h2_pop:  parseInt(h2.pop)
@@ -314,10 +465,23 @@ var serialize = function(obj) {
  *
  * @param latitude  Latitude portion of the GPS location we want data on
  * @param longitude Longitude portion of the GPS location we want data on
-
  */
 var queryWeatherConditions = function(latitude, longitude)
 {
+    var x = (longitude - Global.weatherDataLong) *
+        Math.cos( (Global.weatherDataLat + latitude) / 2 );
+    var y = (latitude - Global.weatherDataLat);
+    var d = Math.sqrt( (x * x) + (y * y) ) * EARTH_RADIUS;
+    
+    // Rate limiting check. Only update if enough time has pased...
+    // ... or there has been a substantial change in location
+    var nextUpdateTime = Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout;
+    if ( Global.updateInProgress && new Date().getTime() < nextUpdateTime && d < 1000 )
+    {
+        console.log("queryWeatherConditions: too quickly requesting updates");
+        return;
+    }
+    
     if (Global.config.weatherService === SERVICE_OPEN_WEATHER)
     {
         fetchOpenWeather(latitude, longitude);
@@ -329,7 +493,7 @@ var queryWeatherConditions = function(latitude, longitude)
     // Leverage WeatherUnderground if we have a key
     if (Global.wuApiKey !== null)
     {
-        fetchWunderWeather(latitude, longitude);
+        fetchHourlyWunderWeather(latitude, longitude);
     }
     else
     {
@@ -348,7 +512,10 @@ var locationSuccess = function (pos)
 {
     var coordinates = pos.coords;
     console.log("Got coordinates: " + JSON.stringify(coordinates));
-    queryWeatherConditions( pos.latitude, pos.longitude );
+    if ( updateWeather() )
+    {
+        queryWeatherConditions( pos.latitude, pos.longitude );
+    }
 };
 
 /** 
@@ -360,35 +527,31 @@ var locationError = function (err)
 {
     var message = 'Location error (' + err.code + '): ' + err.message;
     console.warn(message);
-    switch (err.code )
+    
+    // If we have a home location, use it
+    if ( Global.config.homeWeatherLat !== 0.0 && Global.config.homeWeatherLong !== 0.0 )
     {
-        case err.PERMISSION_DENIED:
+        console.log("Using home location for weather forcast query");
+        queryWeatherConditions( Global.config.homeWeatherLat,
+                               Global.config.homeWeatherLong );    }
+    else
+    {
+        // We're out of luck on location data, Location is off and no home defined
+        if ( Global.locationWatchingId )
         {
-            // The user has specifically denied access to the current accurate position
-            // If we have a home location, use it, else fall through
-            if ( Global.config.weatherLatitude !== 0.0 && Global.config.weatherLongitude !== 0.0 )
-            {
-                console.log("Using home location for weather forcast query");
-                queryWeatherConditions( Global.config.weatherLatitude,
-                                       Global.config.weatherLongitude );
-                break;
-            }
             // stop watching the location
             navigator.geolocation.clearWatch( Global.locationWatchingId );
-            // fall through
+            Global.locationWatchingId = 0;
         }
-        case err.POSITION_UNAVAILABLE:
-        case err.TIMEOUT:
-        default:
-        {
-            Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
-            postDebugMessage({"error": message});
-            Global.updateInProgress = false;
-        }
+        
+        Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
+        postDebugMessage({"error": message});
+        Global.updateInProgress = false;
+
     }
 };
 
-/** 
+/**
  * Called whenever the weather data is out of date, fetches the current
  * location we want weather data for 
  */
@@ -397,18 +560,27 @@ var updateWeather = function ()
     var nextUpdateTime = Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout;
     if (Global.updateInProgress && new Date().getTime() < nextUpdateTime)
     {
-        console.log("Update already started in the last "+(Global.updateWaitTimeout/60000)+" minutes");
-        return;
+        console.log("Update already started in the last " +
+                    (Global.updateWaitTimeout/60000) + " minutes");
+        return false;
     }
     Global.updateInProgress  = true;
     Global.lastUpdateAttempt = new Date();
     
-    var locationOptions = {
-        "enableHighAccuracy": false,
-        "timeout": 15000,
-        "maximumAge": 60000
-    };
-    navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
+    if ( Global.locationWatchingId == 0 )
+    {
+        //var locationOptions = {
+        //    "enableHighAccuracy": false,
+        //    "timeout": 15000,
+        //    "maximumAge": 60000
+        //};
+        //navigator.geolocation.getCurrentPosition( locationSuccess, locationError,
+        //                                          locationOptions );
+        
+        queryWeatherConditions( Global.config.homeWeatherLat,
+                                Global.config.homeWeatherLong );
+    }
+    return true;
 };
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - */
