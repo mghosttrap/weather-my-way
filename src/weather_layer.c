@@ -2,6 +2,7 @@
 #include "network.h"
 #include "weather_layer.h"
 #include "debug_layer.h"
+#include "weather_icon_maps.h"
 
 static Layer *weather_layer;
 

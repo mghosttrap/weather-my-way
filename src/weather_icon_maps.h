@@ -1,11 +1,13 @@
 #ifndef WEATHER_ICON_MAPS_H
 #define WEATHER_ICON_MAPS_H
 /**
- * This file contains fast reference maps, which enable very fast and simple conversion between the raw weather code value and the icon used to represent it in this app.
+ * This file contains fast reference maps, which enable very fast and simple
+ * conversion between the raw weather code value and the icon used to represent
+ * it in this app.
  */
 
 // Fast lookup table for the Yahoo Weather nighttime conditions
-static int S_yahoo_nightconditions_map[] =
+const int S_yahoo_nightconditions_map[] =
 {
     W_ICON_WIND,                // tornado
     W_ICON_WIND,                // tropical storm
@@ -59,7 +61,7 @@ static int S_yahoo_nightconditions_map[] =
 };
 
 // Fast lookup table for the Yahoo Weather daytime conditions
-static int S_yahoo_dayconditions_map[] =
+const int S_yahoo_dayconditions_map[] =
 {
     W_ICON_WIND,                // tornado
     W_ICON_WIND,                // tropical storm
@@ -113,7 +115,7 @@ static int S_yahoo_dayconditions_map[] =
 };
 
 // Fast lookup table for the Weather Underground nighttime forecast
-static int S_wunder_nightforecast_icon_map[] =
+const int S_wunder_nightforecast_icon_map[] =
 {
     W_ICON_NOT_AVAILABLE, // index 0 (not defined by weather underground)
     W_ICON_CLEAR_NIGHT, // Clear
@@ -143,7 +145,7 @@ static int S_wunder_nightforecast_icon_map[] =
 };
 
 // Fast lookup table for the Weather Underground daytime forecast
-static int S_wunder_dayforecast_icon_map[] =
+const int S_wunder_dayforecast_icon_map[] =
 {
     W_ICON_NOT_AVAILABLE, // index 0 (not defined by weather underground)
     W_ICON_CLEAR_DAY,   // Clear
@@ -174,7 +176,7 @@ static int S_wunder_dayforecast_icon_map[] =
 
 
 // Fast lookup map for current day time conditions from weather underground
-static int S_wunder_dayconditions_map[] =
+const int S_wunder_dayconditions_map[] =
 {
     W_ICON_DRIZZLE, // Drizzle
     W_ICON_RAIN, // Rain
@@ -232,7 +234,7 @@ static int S_wunder_dayconditions_map[] =
 };
 
 // Fast lookup map for current night time conditions from weather underground
-static int S_wunder_nightconditions_map[] =
+const int S_wunder_nightconditions_map[] =
 {
     W_ICON_DRIZZLE, // Drizzle
     W_ICON_RAIN, // Rain
