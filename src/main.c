@@ -15,15 +15,15 @@
 #define BATTERY_FRAME   (GRect(110, 0, 144, 8))
 
 /* Keep a pointer to the current weather data as a global variable */
-static WeatherData *weather_data;
+static WeatherData *weather_data = NULL;
 
 /* Global variables to keep track of the UI elements */
-static Window *window;
+static Window *window = NULL;
 
 /* Need to wait for JS to be ready */
 const  int  MAX_JS_READY_WAIT = 5000; // 5s
 static bool initial_request = true;
-static AppTimer *initial_jsready_timer;
+static AppTimer *initial_jsready_timer = NULL;
 
 /**
  * Handle the timer tick event
@@ -99,10 +99,12 @@ void initial_jsready_callback()
     
     if (initial_jsready_timer) {
         app_timer_cancel(initial_jsready_timer);
+        initial_jsready_timer = NULL;
     }
     
     // This isn't required, the JavaScript now takes care of the first weather query
-    //request_weather(weather_data);
+    // (but only if automatic location tracking is on
+    request_weather(weather_data);
 }
 
 /**
@@ -123,8 +125,11 @@ static void init(void)
     time_layer_create(TIME_FRAME, window);
     date_layer_create(DATE_FRAME, window);
     weather_layer_create(WEATHER_FRAME, window);
+    // TODO: only create the debug layer when requested
     debug_layer_create(DEBUG_FRAME, window);
+    // TODO: only create the battery layer when requested
     battery_layer_create(BATTERY_FRAME, window);
+    // TODO: only create the bluetooth layer (shows bt connection) when requested
     
     load_persisted_values(weather_data);
     
@@ -176,4 +181,6 @@ int main(void)
     init();
     app_event_loop();
     deinit();
+    
+    return 0;
 }

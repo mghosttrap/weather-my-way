@@ -607,8 +607,8 @@ var OnPebbleReady = function(e)
         "timeout": 15000,
         "maximumAge": 60000
     };
-    Global.locationWatchingId = navigator.geolocation.watchPosition(locationSuccess,
-        locationError, locationOptions);
+//    Global.locationWatchingId = navigator.geolocation.watchPosition(locationSuccess,
+//        locationError, locationOptions);
 };
 
 Pebble.addEventListener("ready", OnPebbleReady);
