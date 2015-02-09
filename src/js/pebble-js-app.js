@@ -10,8 +10,10 @@
 
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
+var SERVICE_WUNDER_WEATHER = "wunder";
 var EXTERNAL_DEBUG_URL    = '';
-var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
+//var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
+var CONFIGURATION_URL     = 'http://192.168.0.7/config/';
 var EARTH_RADIUS          = 63781370; // Meters
 
 /**
@@ -35,7 +37,8 @@ var Global = {
         weatherService: SERVICE_YAHOO_WEATHER,
         weatherScale:   'F',
         homeWeatherLat: 41.739841,
-        homeWeatherLong: -93.620774
+        homeWeatherLong: -93.620774,
+        homeZip:        50023
     },
     locationWatchingId:    0
 };
@@ -156,7 +159,7 @@ var getJson = function(url, callback)
  */
 var fetchWeather = function(options)
 {
-    //console.log('URL: ' + options.url);
+    console.log('URL: ' + options.url);
     getJson(options.url, function(err, response) {
         try {
             if (err) {
@@ -233,7 +236,8 @@ var fetchYahooWeather = function(latitude, longitude)
 var fetchOpenWeather = function(latitude, longitude)
 {
     var options = {};
-    options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&cnt=1";
+    options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude +
+        "&lon=" + longitude + "&cnt=1";
     
     options.parse = function(response) {
         var temperature, sunrise, sunset, condition, pubdate;
@@ -264,22 +268,6 @@ var fetchOpenWeather = function(latitude, longitude)
         };
     };
     fetchWeather(options);
-};
-
-/**
- * Fetch alert data from Weather Underground
- */
-var fetchWunderAlerts = function( latitude, longitude )
-{
-    var options = {};
-    options.url = 'http://api.wunderground.com/api/' + Global.wuApiKey +
-        '/alerts/q/' + latitude + ',' + longitude + '.json';
-    // define the parse function for handling the response
-    options.parse = function( response )
-    {
-        
-    };
-    //fetchWeather( options );
 };
 
 /**
@@ -345,7 +333,7 @@ var wunderConditionsToEnum = function( str_conditions )
                   'Unknown'
                   ];
      /*
-      52 naked values * 3 to accomodate Light/Heavy/'' prefixes on most of them
+      53 naked values * 3 to accomodate Light/Heavy/'' prefixes on most of them
       */
     // if the string begins with Light offset by 100, Heavy offset by 200
     var offset = 0;
@@ -368,6 +356,8 @@ var wunderConditionsToEnum = function( str_conditions )
             return offset + i;
         }
     }
+    console.log( "wunderConditionsToEnum: failed to find a match for str_conditions:" +
+                 str_conditions );
     return -1;
 };
 
@@ -378,13 +368,12 @@ var fetchWunderWeather = function( latitude, longitude )
 {
     var options = {};
     options.url = 'http://api.wunderground.com/api/' + Global.wuApiKey +
-        '/conditions/q/' + latitude + ',' + longitude + '.json';
+        '/conditions/astronomy/hourly/alerts/q/' + latitude + ',' + longitude + '.json';
     // define the parse function for handling the response
     options.parse = function(response)
     {
+        // Current weather conditions
         var metric = Global.config.weatherScale === 'C';
-        // TODO: Create a map function using the possible conditions listed here:
-        //     http://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary
         var condition = wunderConditionsToEnum( response.current_observation.weather );
         var temperature = (metric) ?
             response.current_observation.temp_c :
@@ -397,17 +386,41 @@ var fetchWunderWeather = function( latitude, longitude )
         // needed?
         //var tzoffset = parseInt( response.current_observation.local_tz_offset );
         
+        // Astronomy data
+        var rise_hour = response.sun_phase.sunrise.hour;
+        var rise_minute = response.sun_phase.sunrise.minute;
+        var set_hour = response.sun_phase.sunset.hour;
+        var set_minute = response.sun_phase.sunset.minute;
+        var rise_date = new Date( 0, 0, 0, rise_hour, rise_minute, 0 ,0 );
+        var set_date = new Date( 0, 0, 0, set_hour, set_minute, 0, 0 );
+        
+        // Hourly forecast data
+        var h1 = response.hourly_forecast[Global.hourlyIndex1];
+        var h2 = response.hourly_forecast[Global.hourlyIndex2];
+        
+        // Active Alert data
+        
         return {
             condition:   condition,
             temperature: temperature,
-            sunrise:     sunrise,
-            sunset:      sunset,
+            sunrise:     rise_date.getTime(),
+            sunset:      set_date.getTime(),
             locale:      locale,
             pubdate:     pubdate.getHours() + ':' + ('0' + pubdate.getMinutes()).slice(-2),
             tzoffset:    new Date().getTimezoneOffset() * 60
+            h1_temp: Global.config.weatherScale === 'C' ? parseInt(h1.temp.metric) :
+                parseInt(h1.temp.english),
+            h1_cond: parseInt(h1.fctcode),
+            h1_time: parseInt(h1.FCTTIME.epoch),
+            h1_pop:  parseInt(h1.pop),
+            h2_temp: Global.config.weatherScale === 'C' ? parseInt(h2.temp.metric) :
+                parseInt(h2.temp.english),
+            h2_cond: parseInt(h2.fctcode),
+            h2_time: parseInt(h2.FCTTIME.epoch),
+            h2_pop:  parseInt(h2.pop)
         };
     };
-    //fetchWeather( options );
+    fetchWeather( options );
 };
 
 /**
@@ -424,7 +437,6 @@ var fetchHourlyWunderWeather = function(latitude, longitude)
     
     options.parse = function(response)
     {
-        
         var h1 = response.hourly_forecast[Global.hourlyIndex1],
         h2 = response.hourly_forecast[Global.hourlyIndex2];
         
@@ -482,26 +494,36 @@ var queryWeatherConditions = function(latitude, longitude)
         return;
     }
     
-    if (Global.config.weatherService === SERVICE_OPEN_WEATHER)
+    Global.updateInProgress  = true;
+    Global.lastUpdateAttempt = new Date();
+    
+    if ( Global.wuApiKey !== null ) // implies SERVICE_WUNDER_WEATHER
+    {
+        fetchWunderWeather( latitude, longitude );
+    }
+    else if ( Global.config.weatherService === SERVICE_OPEN_WEATHER )
     {
         fetchOpenWeather(latitude, longitude);
     }
-    else
+    else if ( Global.config.weatherService === SERVICE_YAHOO_WEATHER )
     {
         fetchYahooWeather(latitude, longitude);
     }
+    
     // Leverage WeatherUnderground if we have a key
-    if (Global.wuApiKey !== null)
-    {
-        fetchHourlyWunderWeather(latitude, longitude);
-    }
-    else
-    {
-        var data = {hourly_enabled: 0};
-        console.log("Hourly disabled, no WU ApiKey");
-        Pebble.sendAppMessage(data, ack, function(ev){ nack(data); });
-    }
+    //if ( Global.wuApiKey !== null )
+    //{
+    //    fetchHourlyWunderWeather(latitude, longitude);
+    //}
+    //else
+    //{
+    //    var data = {hourly_enabled: 0};
+    //    console.log("Hourly disabled, no WU ApiKey");
+    //    Pebble.sendAppMessage(data, ack, function(ev){ nack(data); });
+    //}
 };
+
+
 
 /**
  * Called whenever the weather data is out of date, fetches the current
@@ -516,9 +538,6 @@ var updateWeather = function ()
                     (Global.updateWaitTimeout/60000) + " minutes");
         return false;
     }
-    Global.updateInProgress  = true;
-    Global.lastUpdateAttempt = new Date();
-    
     if ( Global.locationWatchingId === 0 )
     {
         //var locationOptions = {
@@ -532,6 +551,10 @@ var updateWeather = function ()
         queryWeatherConditions( Global.config.homeWeatherLat,
                                 Global.config.homeWeatherLong );
     }
+    else
+    {
+        console.log("Ignoring request to update, location monitoring is active");
+    }
     return true;
 };
 
@@ -544,10 +567,7 @@ var locationSuccess = function (pos)
 {
     var coordinates = pos.coords;
     console.log("Got coordinates: " + JSON.stringify(coordinates));
-    if ( updateWeather() )
-    {
-        queryWeatherConditions( pos.latitude, pos.longitude );
-    }
+    updateWeather();
 };
 
 /** 
@@ -560,6 +580,14 @@ var locationError = function (err)
     var message = 'Location error (' + err.code + '): ' + err.message;
     console.warn(message);
     
+    // If we're trying to use position tracking, turn it off
+    if ( Global.locationWatchingId )
+    {
+        // stop watching the location
+        navigator.geolocation.clearWatch( Global.locationWatchingId );
+        Global.locationWatchingId = 0;
+    }
+    
     // If we have a home location, use it
     if ( Global.config.homeWeatherLat !== 0.0 && Global.config.homeWeatherLong !== 0.0 )
     {
@@ -569,17 +597,9 @@ var locationError = function (err)
     else
     {
         // We're out of luck on location data, Location is off and no home defined
-        if ( Global.locationWatchingId )
-        {
-            // stop watching the location
-            navigator.geolocation.clearWatch( Global.locationWatchingId );
-            Global.locationWatchingId = 0;
-        }
-        
         Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
         postDebugMessage({"error": message});
         Global.updateInProgress = false;
-
     }
 };
 
@@ -599,7 +619,9 @@ var OnPebbleReady = function(e)
     if (initialInstall === null && Global.wuApiKey === null)
     {
         localStorage.setItem('initialInstall', false);
-        Pebble.showSimpleNotificationOnPebble("API Key Needed", "This watchface requires a free API key from Weather Underground. Please visit Settings in the Pebble App to find out more!");
+        var notif_text = "This watchface requires a free API key from Weather " +
+            "Underground. Please visit Settings in the Pebble App to find out more!";
+        Pebble.showSimpleNotificationOnPebble( "API Key Needed", notif_text );
     }
     
     var locationOptions = {
