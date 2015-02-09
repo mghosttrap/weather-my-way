@@ -1,5 +1,5 @@
 
-Weather My Way (Pebble SDK 2.0)
+Weather Watchface (Pebble SDK 2.0)
 =================================
 
 ![pebble banner](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-banner.png)
@@ -15,8 +15,6 @@ Give it a shot and let me know what you think: [download pbw here](https://githu
 ## Requirements
 
 The hourly data for this app comes from the [Weather Underground API](http://www.wunderground.com/weather/api/). Unfortunately, their API is not free. However, Weather Underground does provide a free developer API key (500 hits / day) which more than suffices for this app. Don't share your API key, as once the quota has been reached the key will stop working. 
-
-Might also need a [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/index) key to convert an address to the lat/long of a home location. The code which might need this is currently unimplemented.
 
 ## Configuration 
 
@@ -38,7 +36,7 @@ a=[apikey]      // Weather Underground API Key
  - Changes to reduce battery utilization on the connected device
   - Adding ability to specify a USPS zip code or lat/long (a home location)
   - Changes to the location monitoring to alleviate the need to constantly poke the JavaScript engine - Although location updates appear faster than previous implementation
- - Add the ability to use the current location to monitor active alerts from the National Weather Service (US)
+ - Add the ability to use the current location to monitor active alerts
  - Added monitoring of bluetooth events, notification on disconnect
 
 ## Progress
