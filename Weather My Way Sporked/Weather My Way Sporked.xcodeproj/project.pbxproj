@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		2900099D1A88603900D74325 /* weather_icon_maps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = weather_icon_maps.h; sourceTree = "<group>"; };
 		291753561A58BCA300557E7B /* appinfo.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = appinfo.json; path = ../appinfo.json; sourceTree = "<group>"; };
 		291753571A58BCA300557E7B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		2917535A1A58BCA300557E7B /* futura.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = futura.ttf; sourceTree = "<group>"; };
@@ -110,6 +111,7 @@
 				291753741A58BCA300557E7B /* persist.h */,
 				291753751A58BCA300557E7B /* weather_layer.c */,
 				291753761A58BCA300557E7B /* weather_layer.h */,
+				2900099D1A88603900D74325 /* weather_icon_maps.h */,
 			);
 			name = src;
 			path = ../src;
@@ -284,6 +286,7 @@
 				291753551A58BC6C00557E7B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
