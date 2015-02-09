@@ -65,6 +65,6 @@ typedef struct {
   WeatherError error;
 } WeatherData;
 
-void init_network(WeatherData *weather_data);
+void init_network( WeatherData *weather_data );
 void close_network();
-void request_weather(WeatherData *weather_data);
+bool request_weather( WeatherData *weather_data );

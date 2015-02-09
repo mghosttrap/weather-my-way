@@ -59,9 +59,9 @@ bool processCurrentWeather( DictionaryIterator* received, WeatherData *weather )
             {
                 return false;
             }
-        }
+        } // switch
         tuple = dict_read_next( received );
-    }
+    } // while
     
     weather->error       = WEATHER_E_OK;
     weather->updated     = time(NULL);
@@ -132,9 +132,9 @@ bool processHourlyWeather( DictionaryIterator* received, WeatherData *weather )
             {
                 return false;
             }
-        }
+        } // switch
         tuple = dict_read_next( received );
-    }
+    } // while
     
     weather->hourly_enabled = true;
     weather->hourly_updated = time(NULL);
@@ -164,13 +164,13 @@ bool processConfigSettings( DictionaryIterator* received, WeatherData *weather )
             }
             case KEY_SCALE:
             {
-                char* scale = strcmp( scale_tuple->value->cstring, SCALE_CELSIUS ) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
+                char* scale = strcmp( tuple->value->cstring, SCALE_CELSIUS ) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
                 strncpy(weather->scale, scale, 2);
                 break;
             }
             case KEY_BATTERY:
             {
-                weather->battery = (bool)battery_tuple->value->int32;
+                weather->battery = (bool)tuple->value->int32;
                 break;
             }
             case KEY_HOURLY_ENABLED:
@@ -183,9 +183,9 @@ bool processConfigSettings( DictionaryIterator* received, WeatherData *weather )
             {
                 return false;
             }
-        }
+        } // switch
         tuple = dict_read_next( received );
-    }
+    } // while
     
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration serv:%s scale:%s debug:%i batt:%i",
             weather->service, weather->scale, weather->debug, weather->battery);
@@ -224,8 +224,8 @@ static void appmsg_in_received( DictionaryIterator *received, void *context )
     
     // Process the current weather
     bool handled = processCurrentWeather( received, context );
-    // if the message wasn't handled, process hourly weather
-    handled = (handled) ? handled : processHourlyWeather( received, context );
+    // try to process hourly weather (wunder provides it all in one message)
+    handled = ( processHourlyWeather( received, context ) ) ? true : handled;
     // if the message wasn't handled, process updated configuration settings
     handled = (handled) ? handled : processConfigSettings( received, context );
 
@@ -257,13 +257,13 @@ static void appmsg_in_received( DictionaryIterator *received, void *context )
                 {
                     weather->error = WEATHER_E_PHONE;
                     // Unknown key
-                    APP_LOG(APP_LOG_LEVEL_DEBUG, "appmsg_in_received: unknown key: %s",
-                            tuple->key );
+                    APP_LOG(APP_LOG_LEVEL_DEBUG, "appmsg_in_received: unknown key: %u",
+                            (unsigned int)tuple->key );
                 }
-            }
-        }
-        tuple = dict_read_next(&iter);
-    }
+            } // switch
+            tuple = dict_read_next( received );
+        } // while
+    } // if
     
     weather_layer_update(weather);
     // Success! reset the retry count...
@@ -394,8 +394,10 @@ void close_network()
 
 /**
  * Send a request to the JavaScript engine to request the weather data
+ *
+ * \return True on success, false otherwise
  */
-void request_weather( WeatherData *weather_data )
+bool request_weather( WeatherData *weather_data )
 {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Request weather, retry: %i", retry_count);
     
@@ -403,22 +405,21 @@ void request_weather( WeatherData *weather_data )
     {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "Too many retries");
         retry_count = 0;
-        return;
+        return false;
     }
     
     if (!bluetooth_connection_service_peek())
     {
         weather_data->error = WEATHER_E_DISCONNECTED;
-        return;
+        return false;
     }
+    DictionaryIterator *iter = NULL;
+    AppMessageResult result = app_message_outbox_begin(&iter);
     
-    DictionaryIterator *iter;
-    app_message_outbox_begin(&iter);
-    
-    if (iter == NULL)
+    if (iter == NULL || result != APP_MSG_OK)
     {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "Null iter");
-        return;
+        return false;
     }
     
     dict_write_cstring(iter, KEY_SERVICE, weather_data->service);
@@ -428,5 +429,6 @@ void request_weather( WeatherData *weather_data )
     
     dict_write_end(iter);
     
-    app_message_outbox_send();
+    result = app_message_outbox_send();
+    return result == APP_MSG_OK;
 }
