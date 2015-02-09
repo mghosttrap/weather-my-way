@@ -307,10 +307,10 @@ void weather_layer_update(WeatherData *weather_data)
       localtime(&current_time);
 
       night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h1_time);
-      weather_layer_set_icon(wunder_weather_icon_for_condition(weather_data->h1_cond, night_time), AREA_HOURLY1);
+      weather_layer_set_icon(wunder_forecast_icon_for_conditions(weather_data->h1_cond, night_time), AREA_HOURLY1);
 
       night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h2_time);
-      weather_layer_set_icon(wunder_weather_icon_for_condition(weather_data->h2_cond, night_time), AREA_HOURLY2);
+      weather_layer_set_icon(wunder_forecast_icon_for_conditions(weather_data->h2_cond, night_time), AREA_HOURLY2);
 
       snprintf(wld->h1_temp_str, sizeof(wld->h1_temp_str), 
         "%i%s", weather_data->h1_temp, "°");
@@ -481,209 +481,61 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
  * Converts the Yahoo API Weather Condition into one of our icons.
  * Refer to: https://developer.yahoo.com/weather/#codes
  */
-uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) 
+uint8_t yahoo_weather_icon_for_condition( int c, bool night_time )
 {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection. c: %i, night: %i", c, night_time);
-  
-  // Tornado / Hurricane / Wind
-  if ((c >= 0 && c <= 2) || c == 23 || c == 24) {
-    return W_ICON_WIND;
-  }
-  // Thunderstorm
-  else if (c == 3 || c == 4 || c == 38 || c == 39) {
-    return W_ICON_THUNDER;
-  }
-  // Rain & Snow
-  else if (c == 5) {
-    return W_ICON_RAIN_SNOW;
-  }
-  // Rain & Sleet / Mixed 
-  else if (c == 6 || c == 8 || c == 10 || c == 35) {
-    return W_ICON_RAIN_SLEET;
-  }
-  // Snow & Sleet
-  else if (c == 7) {
-    return W_ICON_SNOW_SLEET;
-  }
-  // Drizzle // Showers
-  else if (c == 9 || c == 11) {
-    return W_ICON_DRIZZLE;
-  }
-  // Rain / Scattered Showers / Thundershowers
-  else if (c == 12 || c == 45) {
-    return W_ICON_RAIN;
-  }
-  // Snow / Scattered Snow / Show Showers
-  else if (c == 13 || c == 14 || c == 16 || c == 42 || c == 46) {
-    return W_ICON_SNOW;
-  }
-  // Heavy Snow / Blowing Snow
-  else if (c == 15 || c == 41 || c == 43) {
-    return W_ICON_HEAVY_SNOW;
-  }
-  // Sleet
-  else if (c == 17 || c == 18) {
-    return W_ICON_SLEET;
-  }
-  // Fog / Mist / Haze / etc.
-  else if (c >= 19 && c <= 22) {
-    return W_ICON_FOG;
-  }
-  // Cold
-  else if (c == 25) {
-    return W_ICON_COLD;
-  }
-  // Cloudy
-  else if (c == 26) {
-    return W_ICON_CLOUDY;
-  }
-  // Mostly Cloudy
-  else if (c == 27 || c == 28) {
-    if (night_time)
-      return W_ICON_CLOUDY;
+    //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection. c: %i, night: %i", c, night_time);
+    
+    if ( c > 47 || c < 0 )
+    {
+        return W_ICON_NOT_AVAILABLE;
+    }
+    if ( night_time )
+    {
+        return S_yahoo_nightconditions_map[c];
+    }
     else
-      return W_ICON_MOSTLY_CLOUDY_DAY;
-  }
-  // Partly Cloudy or Fair
-  else if (c == 29 || c == 30 || c == 44) {
-    if (night_time)
-      return W_ICON_PARTLY_CLOUDY_NIGHT;
-    else
-      return W_ICON_PARTLY_CLOUDY_DAY;
-  }
-  // Clear Day Night
-  else if (c == 31 || c == 32) {
-    if (night_time)
-      return W_ICON_CLEAR_NIGHT;
-    else
-      return W_ICON_CLEAR_DAY;
-  }
-  // Fair Day Night
-  else if (c == 33 || c == 34) {
-    if (night_time)
-      return W_ICON_FAIR_NIGHT;
-    else
-      return W_ICON_FAIR_DAY;
-  }
-  // Hot
-  else if (c == 36) {
-      return W_ICON_HOT;
-  }
-  // Isolated / Scattered Thunderstorm
-  else if ((c >= 37 && c <= 39) || c == 47) {
-    if (night_time)
-      return W_ICON_THUNDER;
-    else
-      return W_ICON_THUNDER_SUN;
-  }
-  // Scattered Showers
-  else if (c == 40) {
-    if (night_time)
-      return W_ICON_RAIN;
-    else
-      return W_ICON_RAIN_SUN;
-  }
-  // Weather condition not available
-  else {
-    return W_ICON_NOT_AVAILABLE;
-  }
+    {
+        return S_yahoo_dayconditions_map[c];
+    }
 }
 
 /*
  * Converts the Weather Underground API Weather Condition into one of our icons.
  * Refer to: http://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary#forecast_description_numbers
  */
-uint8_t wunder_weather_icon_for_condition(int c, bool night_time) 
+uint8_t wunder_forecast_icon_for_conditions( int c, bool night_time ) 
 {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection. c: %i, night: %i", c, night_time);
-  
-  // Clear
-  if (c == 1) {
-    if (night_time)
-      return W_ICON_CLEAR_NIGHT;
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Weather Underground icon selection. c: %i, night: %i", c, night_time);
+
+    // if the value isn't in the expected range, default to not available
+    int c_value = ( c <= 24 && c > 0 ) ? c : 0;
+    if ( night_time )
+    {
+        return S_wunder_nightforecast_icon_map[c_value];
+    }
     else
-      return W_ICON_CLEAR_DAY;
-  }
-  // Partly Cloudy
-  else if (c == 2) {
-    if (night_time)
-      return W_ICON_FAIR_NIGHT;
+    {
+        return S_wunder_dayforecast_icon_map[c_value];
+    }
+}
+
+/**
+ * Converts the Weather Underground API Current weather conditions into one of our icons.
+ * Refer to: http://www.wunderground.com/weather/api/d/docs?d=resources/phrase-glossary#current_condition_phrases
+ * Light/Heavy prefixes are captured by JS, but ignored here
+ */
+uint8_t wunder_conditions_icon( int c, bool night_time )
+{
+    int condition = c % 100; // only interested the value below 100
+    // make sure the value is 53 or below
+    condition = ( condition >= 0 && condition <= 53 ) ? condition : 53;
+
+    if ( night_time )
+    {
+        return S_wunder_dayconditions_map[condition];
+    }
     else
-      return W_ICON_FAIR_DAY;
-  }
-  // Mostly CLoudly
-  else if (c == 3) {
-    if (night_time)
-      return W_ICON_PARTLY_CLOUDY_NIGHT;
-    else
-      return W_ICON_PARTLY_CLOUDY_DAY;
-  }
-  // Cloudly
-  else if (c == 4) {
-    return W_ICON_CLOUDY;
-  }
-  // Haze / Fog
-  else if (c == 5 || c == 6) {
-    return W_ICON_FOG;
-  }
-  // Very Warm
-  else if (c == 7) {
-      return W_ICON_HOT;
-  }
-  // Very Cold
-  else if (c == 8) {
-    return W_ICON_COLD;
-  }
-  // Blowing Snow
-  else if (c == 9 || c == 20 || c == 21 || c == 24) {
-    return W_ICON_SNOW;
-  }
-  // Chance of Showers
-  else if (c == 10) {
-    if (night_time)
-      return W_ICON_DRIZZLE;
-    else
-      return W_ICON_RAIN_SUN;
-  }
-  // Showers
-  else if (c == 11) {
-    return W_ICON_DRIZZLE;
-  }
-  // Chance of Rain
-  else if (c == 12) {
-    if (night_time)
-      return W_ICON_RAIN;
-    else
-      return W_ICON_RAIN_SUN;
-  }
-  // Rain
-  else if (c == 13) {
-    return W_ICON_RAIN;
-  }
-  // Chance of Thunderstorm
-  else if (c == 14) {
-    if (night_time)
-      return W_ICON_THUNDER;
-    else
-      return W_ICON_THUNDER_SUN;
-  }
-  // Thunderstorms
-  else if (c == 15) {
-    return W_ICON_THUNDER;
-  }
-  // Flurries 
-  else if (c == 16) {
-    return W_ICON_SLEET;
-  }
-  // Chance of Snow Showers, Snow Showers (wtf)
-  else if (c == 18 || c == 19) {
-    return W_ICON_SNOW_SLEET;
-  }
-  // Chance of Ice Pellets, Ice Pellets
-  else if (c == 22 || c == 23) {
-    return W_ICON_SLEET;
-  }
-  else {
-    return W_ICON_NOT_AVAILABLE;
-  }
+    {
+        return S_wunder_nightconditions_map[condition];
+    }
 }

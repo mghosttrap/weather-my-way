@@ -78,6 +78,7 @@ void weather_layer_set_temperature(int16_t t, bool is_stale);
 void weather_layer_clear_temperature();
 uint8_t open_weather_icon_for_condition(int condition, bool night_time);
 uint8_t yahoo_weather_icon_for_condition(int condition, bool night_time);
-uint8_t wunder_weather_icon_for_condition(int c, bool night_time);
+uint8_t wunder_forecast_icon_for_conditions( int c, bool night_time );
+uint8_t wunder_conditions_icon( int c, bool night_time );
 
 #endif
